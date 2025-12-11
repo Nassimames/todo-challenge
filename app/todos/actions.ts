@@ -1,28 +1,24 @@
-'use server' // ⚠️ TRES IMPORTANT : Obligatoire en haut
+'use server'
 
 import { createClient } from '@/app/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 
+// 1. CREATE : Ajouter une tâche
 export async function addTodo(formData: FormData) {
   const supabase = await createClient();
 
-  // 1. Récupérer la donnée du formulaire
   const title = formData.get('title') as string;
-
-  // 2. Récupérer l'utilisateur courant (Pour le user_id)
+  
+  // On vérifie qui est connecté
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    return; // Sécurité : On ne fait rien si pas connecté
-  }
+  if (!user) return;
 
-  // 3. CREATE : Insertion en base
-  // TypeScript va vérifier que 'title' et 'user_id' existent bien dans ta table !
   const { error } = await supabase
     .from('todos')
     .insert({
       title: title,
-      user_id: user.id, // Important : Lier la tâche à l'utilisateur
+      user_id: user.id,
       is_complete: false
     });
 
@@ -31,7 +27,59 @@ export async function addTodo(formData: FormData) {
     return;
   }
 
-  // 4. Magie Next.js : Rafraîchir la page
-  // Ça dit à Next.js : "Les données ont changé sur /todos, recharge la liste !"
+  revalidatePath('/todos');
+}
+
+// 2. UPDATE : Mettre à jour (Cocher/Décocher)
+export async function updateTodo(id: string, is_complete: boolean) {
+  const supabase = await createClient();
+  
+  const { error } = await supabase
+    .from('todos')
+    .update({ is_complete: is_complete })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Erreur update:', error);
+    return;
+  }
+
+  revalidatePath('/todos');
+}
+// 5. UPDATE TITLE : Modifier le texte d'une tâche
+export async function updateTodoTitle(id: string, newTitle: string) {
+  const supabase = await createClient();
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from('todos')
+    .update({ title: newTitle }) // On met à jour SEULEMENT le titre
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('Erreur update title:', error);
+    return;
+  }
+
+  revalidatePath('/todos');
+}
+
+// 3. DELETE : Supprimer une tâche
+export async function deleteTodo(id: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('todos')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Erreur delete:', error);
+    return;
+  }
+
   revalidatePath('/todos');
 }
