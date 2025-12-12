@@ -3,83 +3,60 @@
 import { createClient } from '@/app/utils/supabase/server';
 import { revalidatePath } from 'next/cache';
 
-// 1. CREATE : Ajouter une tâche
+// 1. ADD TODO (Avec Description + Image)
 export async function addTodo(formData: FormData) {
   const supabase = await createClient();
-
   const title = formData.get('title') as string;
-  
-  // On vérifie qui est connecté
-  const { data: { user } } = await supabase.auth.getUser();
+  const description = formData.get('description') as string; // Nouveau !
+  const imageFile = formData.get('image') as File;
 
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
-  const { error } = await supabase
-    .from('todos')
-    .insert({
-      title: title,
-      user_id: user.id,
-      is_complete: false
-    });
+  let image_url = null;
 
-  if (error) {
-    console.error('Erreur insert:', error);
-    return;
+  if (imageFile && imageFile.size > 0) {
+    const fileName = `${user.id}/${Date.now()}-${imageFile.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+    const { error: uploadError } = await supabase.storage.from('todo-images').upload(fileName, imageFile);
+    if (!uploadError) image_url = fileName;
   }
+
+  await supabase.from('todos').insert({
+    title,
+    description, // On ajoute ça
+    user_id: user.id,
+    is_complete: false,
+    image_url
+  });
 
   revalidatePath('/todos');
 }
 
-// 2. UPDATE : Mettre à jour (Cocher/Décocher)
-export async function updateTodo(id: string, is_complete: boolean) {
+// 2. UPDATE DETAILS (Titre + Description) - Pour la Popup
+export async function updateTodoDetails(id: string, title: string, description: string) {
   const supabase = await createClient();
-  
-  const { error } = await supabase
-    .from('todos')
-    .update({ is_complete: is_complete })
-    .eq('id', id);
-
-  if (error) {
-    console.error('Erreur update:', error);
-    return;
-  }
-
-  revalidatePath('/todos');
-}
-// 5. UPDATE TITLE : Modifier le texte d'une tâche
-export async function updateTodoTitle(id: string, newTitle: string) {
-  const supabase = await createClient();
-  
   const { data: { user } } = await supabase.auth.getUser();
+  
   if (!user) return;
 
-  const { error } = await supabase
+  await supabase
     .from('todos')
-    .update({ title: newTitle }) // On met à jour SEULEMENT le titre
+    .update({ title, description })
     .eq('id', id)
     .eq('user_id', user.id);
 
-  if (error) {
-    console.error('Erreur update title:', error);
-    return;
-  }
-
   revalidatePath('/todos');
 }
 
-// 3. DELETE : Supprimer une tâche
+// ... (Garde updateTodo "checkbox" et deleteTodo comme avant)
+export async function updateTodo(id: string, is_complete: boolean) {
+    const supabase = await createClient();
+    await supabase.from('todos').update({ is_complete }).eq('id', id);
+    revalidatePath('/todos');
+}
+
 export async function deleteTodo(id: string) {
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from('todos')
-    .delete()
-    .eq('id', id);
-
-  if (error) {
-    console.error('Erreur delete:', error);
-    return;
-  }
-
-  revalidatePath('/todos');
+    const supabase = await createClient();
+    await supabase.from('todos').delete().eq('id', id);
+    revalidatePath('/todos');
 }

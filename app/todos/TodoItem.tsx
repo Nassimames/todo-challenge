@@ -1,134 +1,144 @@
 'use client';
 
-import { updateTodo, deleteTodo, updateTodoTitle } from './actions';
+import { useState } from 'react';
+import { updateTodo, deleteTodo, updateTodoDetails } from './actions';
 import { Tables } from '@/app/types/supabase';
-import { useState, useRef, useEffect } from 'react';
+import { X, Calendar, AlignLeft, Trash2 } from 'lucide-react';
 
 export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
+  const [isOpen, setIsOpen] = useState(false); // État de la popup
   const [isPending, setIsPending] = useState(false);
   
-  // --- NOUVEAUX ÉTATS POUR L'ÉDITION ---
-  const [isEditing, setIsEditing] = useState(false); // Est-ce qu'on modifie ?
-  const [editedTitle, setEditedTitle] = useState(todo.title); // Le texte en cours de modif
-  const inputRef = useRef<HTMLInputElement>(null); // Pour mettre le focus automatiquement
+  // États pour l'édition dans la popup
+  const [editTitle, setEditTitle] = useState(todo.title);
+  const [editDesc, setEditDesc] = useState(todo.description || '');
 
-  // Quand on passe en mode édition, on met le focus dans l'input
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isEditing]);
+  const imageUrl = todo.image_url 
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/todo-images/${todo.image_url}`
+    : null;
 
-  // 1. UPDATE STATUT (Cocher)
-  const handleToggle = async () => {
-    if (isEditing) return; // On ne coche pas si on est en train d'écrire
-    setIsPending(true);
+  // Clic sur le carré SEULEMENT
+  const handleCheck = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Empêche d'ouvrir la popup
     await updateTodo(todo.id, !todo.is_complete);
-    setIsPending(false);
   };
 
-  // 2. DELETE (Supprimer)
-  const handleDelete = async () => {
-    if (confirm('Supprimer ?')) {
-      setIsPending(true);
-      await deleteTodo(todo.id);
-    }
-  };
-
-  // 3. UPDATE TITRE (Sauvegarder)
-  const handleSaveTitle = async () => {
-    if (editedTitle.trim() === '') return; // Pas de titre vide
-    if (editedTitle === todo.title) {
-        setIsEditing(false); // Rien n'a changé, on ferme juste
-        return;
-    }
-
+  // Sauvegarder les modifications
+  const handleSave = async () => {
     setIsPending(true);
-    await updateTodoTitle(todo.id, editedTitle);
+    await updateTodoDetails(todo.id, editTitle, editDesc);
     setIsPending(false);
-    setIsEditing(false); // On quitte le mode édition
-  };
-
-  // Annuler l'édition (Touche Echap ou bouton Annuler)
-  const handleCancel = () => {
-    setEditedTitle(todo.title); // On remet le vieux titre
-    setIsEditing(false);
+    setIsOpen(false);
   };
 
   return (
-    <li 
-      className={`
-        flex justify-between items-center p-4 rounded-lg border transition-all duration-200
-        ${todo.is_complete ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-300 shadow-sm'}
-        ${isPending ? 'opacity-50' : ''}
-      `}
-    >
-      {/* --- ZONE GAUCHE --- */}
-      <div className="flex items-center gap-3 flex-1">
-        
-        {/* CHECKBOX (Cachée en mode édition pour pas gêner) */}
-        {!isEditing && (
-          <div 
-            onClick={handleToggle} 
-            className={`text-2xl cursor-pointer ${todo.is_complete ? 'text-green-500' : 'text-gray-300'}`}
-          >
-            {todo.is_complete ? '✅' : '⬜'} 
-          </div>
-        )}
+    <>
+      {/* --- LA CARTE (LISTE) --- */}
+      <li 
+        onClick={() => setIsOpen(true)} // Clic sur la carte -> Ouvre Popup
+        className="group flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
+      >
+        {/* Checkbox isolée */}
+        <div 
+            onClick={handleCheck}
+            className={`
+                w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
+                ${todo.is_complete ? 'bg-green-500 border-green-500' : 'border-gray-300 hover:border-green-500'}
+            `}
+        >
+            {todo.is_complete && <span className="text-white text-xs">✓</span>}
+        </div>
 
-        {/* --- LOGIQUE D'AFFICHAGE DU TEXTE --- */}
-        {isEditing ? (
-          // MODE ÉDITION : Input
-          <div className="flex gap-2 flex-1 mr-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveTitle();
-                if (e.key === 'Escape') handleCancel();
-              }}
-              className="flex-1 border p-1 rounded px-2"
-            />
-            <button onClick={handleSaveTitle} className="text-xs bg-green-100 text-green-700 px-2 rounded">OK</button>
-            <button onClick={handleCancel} className="text-xs bg-gray-100 text-gray-700 px-2 rounded">X</button>
-          </div>
-        ) : (
-          // MODE LECTURE : Texte
-          <div className="flex flex-col flex-1 cursor-pointer" onClick={handleToggle}>
-            <span className={`font-medium ${todo.is_complete ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-              {todo.title}
+        <div className="flex-1">
+            <span className={`font-medium text-gray-800 ${todo.is_complete ? 'line-through text-gray-400' : ''}`}>
+                {todo.title}
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${todo.is_complete ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-              {todo.is_complete ? 'Terminé' : 'À faire'}
-            </span>
-          </div>
+        </div>
+
+        {/* Petite vignette image si existe */}
+        {imageUrl && (
+            <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden">
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} className="w-full h-full object-cover" alt="task" />
+            </div>
         )}
-      </div>
+      </li>
 
-      {/* --- ZONE DROITE (BOUTONS ACTIONS) --- */}
-      {!isEditing && (
-        <div className="flex gap-2">
-          {/* Bouton Éditer (Crayon) */}
-          <button 
-            onClick={() => setIsEditing(true)}
-            className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-full hover:bg-blue-50"
-            title="Modifier"
-          >
-            ✏️
-          </button>
+      {/* --- LA POPUP (MODALE) --- */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Header Popup */}
+            <div className="p-4 border-b flex justify-between items-center">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Détails de la tâche</span>
+                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition">
+                    <X size={20} />
+                </button>
+            </div>
 
-          {/* Bouton Supprimer (Poubelle) */}
-          <button 
-            onClick={handleDelete}
-            className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-full hover:bg-red-50"
-            title="Supprimer"
-          >
-            🗑️
-          </button>
+            {/* Contenu Scrollable */}
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+                
+                {/* Image en grand */}
+                {imageUrl && (
+                    <div className="mb-6 rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                         {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={imageUrl} className="w-full h-auto object-cover" alt="Detail" />
+                    </div>
+                )}
+
+                {/* Champs Editables */}
+                <div className="space-y-4">
+                    <div>
+                        <input 
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            className="w-full text-2xl font-bold text-gray-900 outline-none placeholder:text-gray-300"
+                            placeholder="Titre de la tâche"
+                        />
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                        <AlignLeft className="text-gray-400 mt-1" size={20} />
+                        <textarea 
+                            value={editDesc}
+                            onChange={(e) => setEditDesc(e.target.value)}
+                            className="w-full h-32 resize-none text-gray-600 outline-none placeholder:text-gray-400 leading-relaxed"
+                            placeholder="Ajouter une description plus détaillée..."
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 bg-gray-50 flex justify-between items-center">
+                <button 
+                    onClick={async () => {
+                        if(confirm('Supprimer ?')) await deleteTodo(todo.id);
+                    }}
+                    className="text-red-500 hover:bg-red-100 p-2 rounded-lg flex items-center gap-2 text-sm font-medium transition"
+                >
+                    <Trash2 size={16} /> Supprimer
+                </button>
+
+                <div className="flex gap-2">
+                    <button onClick={() => setIsOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium">
+                        Annuler
+                    </button>
+                    <button 
+                        onClick={handleSave} 
+                        disabled={isPending}
+                        className="px-6 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 disabled:opacity-50"
+                    >
+                        {isPending ? 'Sauvegarde...' : 'Enregistrer'}
+                    </button>
+                </div>
+            </div>
+
+          </div>
         </div>
       )}
-    </li>
+    </>
   );
 }
