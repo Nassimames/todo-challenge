@@ -49,7 +49,8 @@
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving...",
-    "confirmDelete": "Are you sure you want to delete?"
+    "confirmDelete": "Are you sure you want to delete?",
+    "sectionActive": "In Progress",
+    "sectionCompleted": "Completed"
   }
 }
-  }

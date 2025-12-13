@@ -48,6 +48,8 @@
     "cancel": "Annuler",
     "save": "Enregistrer",
     "saving": "Sauvegarde...",
-    "confirmDelete": "Voulez-vous vraiment supprimer ?"
+    "confirmDelete": "Voulez-vous vraiment supprimer ?",
+    "sectionActive": "En cours",
+    "sectionCompleted": "Terminées"
   }
-  }
+}
