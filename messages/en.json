@@ -34,7 +34,8 @@
     "tasks": "My Tasks",
     "login": "Login",
     "logout": "Log out",
-    "connectedAs": "Signed in as"
+    "connectedAs": "Signed in as",
+    "searchPlaceholder": "Search for a task..."  
   },
   "Todos": {
     "title": "Your Tasks",
@@ -51,6 +52,9 @@
     "saving": "Saving...",
     "confirmDelete": "Are you sure you want to delete?",
     "sectionActive": "In Progress",
-    "sectionCompleted": "Completed"
+    "sectionCompleted": "Completed",
+    "searchResults": "Search results for \"{query}\"",
+    "noResultsTitle": "No tasks found",
+    "noResultsDesc": "Try another keyword."
   }
 }

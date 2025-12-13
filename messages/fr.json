@@ -33,7 +33,8 @@
     "tasks": "Mes Tâches",
     "login": "Se connecter",
     "logout": "Se déconnecter",
-    "connectedAs": "Connecté en tant que"
+    "connectedAs": "Connecté en tant que",
+    "searchPlaceholder": "Rechercher une tâche..."
   },
   "Todos": {
     "title": "Vos Tâches",
@@ -50,6 +51,9 @@
     "saving": "Sauvegarde...",
     "confirmDelete": "Voulez-vous vraiment supprimer ?",
     "sectionActive": "En cours",
-    "sectionCompleted": "Terminées"
+    "sectionCompleted": "Terminées",
+    "searchResults": "Résultats de recherche pour \"{query}\"",
+    "noResultsTitle": "Aucune tâche trouvée",
+    "noResultsDesc": "Essayez un autre mot clé."
   }
 }
