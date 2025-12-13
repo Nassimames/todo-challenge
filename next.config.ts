@@ -1,7 +1,18 @@
-import type { NextConfig } from "next";
+import createNextIntlPlugin from 'next-intl/plugin';
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const withNextIntl = createNextIntlPlugin(); // Cela cherche i18n/request.ts par défaut
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    // On autorise les images de partout pour ton Storage Supabase
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: '**',
+            },
+        ],
+    },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

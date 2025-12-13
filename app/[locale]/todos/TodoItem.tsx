@@ -5,25 +5,26 @@ import { updateTodo, deleteTodo, updateTodoDetails } from './actions';
 import { Tables } from '@/app/types/supabase';
 import { X, Calendar, AlignLeft, Trash2 } from 'lucide-react';
 
+import { useTranslations } from 'next-intl'; // <--- IMPORT
+
 export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
-  const [isOpen, setIsOpen] = useState(false); // État de la popup
+  const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   
-  // États pour l'édition dans la popup
   const [editTitle, setEditTitle] = useState(todo.title);
   const [editDesc, setEditDesc] = useState(todo.description || '');
+
+  const t = useTranslations('Todos'); // <--- IMPORT TRADUCTIONS
 
   const imageUrl = todo.image_url 
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/todo-images/${todo.image_url}`
     : null;
 
-  // Clic sur le carré SEULEMENT
   const handleCheck = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Empêche d'ouvrir la popup
+    e.stopPropagation();
     await updateTodo(todo.id, !todo.is_complete);
   };
 
-  // Sauvegarder les modifications
   const handleSave = async () => {
     setIsPending(true);
     await updateTodoDetails(todo.id, editTitle, editDesc);
@@ -33,12 +34,10 @@ export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
 
   return (
     <>
-      {/* --- LA CARTE (LISTE) --- */}
       <li 
-        onClick={() => setIsOpen(true)} // Clic sur la carte -> Ouvre Popup
+        onClick={() => setIsOpen(true)}
         className="group flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer"
       >
-        {/* Checkbox isolée */}
         <div 
             onClick={handleCheck}
             className={`
@@ -55,7 +54,6 @@ export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
             </span>
         </div>
 
-        {/* Petite vignette image si existe */}
         {imageUrl && (
             <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden">
                  {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -64,23 +62,20 @@ export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
         )}
       </li>
 
-      {/* --- LA POPUP (MODALE) --- */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             
-            {/* Header Popup */}
             <div className="p-4 border-b flex justify-between items-center">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Détails de la tâche</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  {t('detailsTitle')} {/* Traduit */}
+                </span>
                 <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition">
                     <X size={20} />
                 </button>
             </div>
 
-            {/* Contenu Scrollable */}
             <div className="p-6 max-h-[70vh] overflow-y-auto">
-                
-                {/* Image en grand */}
                 {imageUrl && (
                     <div className="mb-6 rounded-xl overflow-hidden shadow-sm border border-gray-100">
                          {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -88,14 +83,12 @@ export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
                     </div>
                 )}
 
-                {/* Champs Editables */}
                 <div className="space-y-4">
                     <div>
                         <input 
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
                             className="w-full text-2xl font-bold text-gray-900 outline-none placeholder:text-gray-300"
-                            placeholder="Titre de la tâche"
                         />
                     </div>
                     
@@ -105,33 +98,32 @@ export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
                             value={editDesc}
                             onChange={(e) => setEditDesc(e.target.value)}
                             className="w-full h-32 resize-none text-gray-600 outline-none placeholder:text-gray-400 leading-relaxed"
-                            placeholder="Ajouter une description plus détaillée..."
+                            placeholder={t('placeholderDesc')}
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Footer Actions */}
             <div className="p-4 bg-gray-50 flex justify-between items-center">
                 <button 
                     onClick={async () => {
-                        if(confirm('Supprimer ?')) await deleteTodo(todo.id);
+                        if(confirm(t('confirmDelete'))) await deleteTodo(todo.id);
                     }}
                     className="text-red-500 hover:bg-red-100 p-2 rounded-lg flex items-center gap-2 text-sm font-medium transition"
                 >
-                    <Trash2 size={16} /> Supprimer
+                    <Trash2 size={16} /> {t('delete')}
                 </button>
 
                 <div className="flex gap-2">
                     <button onClick={() => setIsOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg text-sm font-medium">
-                        Annuler
+                        {t('cancel')}
                     </button>
                     <button 
                         onClick={handleSave} 
                         disabled={isPending}
                         className="px-6 py-2 bg-black text-white rounded-lg text-sm font-bold hover:bg-gray-800 disabled:opacity-50"
                     >
-                        {isPending ? 'Sauvegarde...' : 'Enregistrer'}
+                        {isPending ? t('saving') : t('save')}
                     </button>
                 </div>
             </div>

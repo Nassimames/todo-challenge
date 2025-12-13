@@ -1,0 +1,55 @@
+{
+    "Common": {
+      "loading": "Loading...",
+      "language": "Language"
+    },
+    "Home": {
+        "title": "Organize your craft.",
+        "subtitle": "Don't let your ideas fly away. TaskFlow is the minimalist tool designed to turn your daily chaos into a symphony of productivity.",
+        "cta": "Start now",
+        "code": "View code on GitHub"
+      },
+    "Auth": {
+    "loginTitle": "Glad to see you again!",
+    "signupTitle": "Join TaskFlow",
+    "tabLogin": "Log In",
+    "tabSignup": "Sign Up",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "nameLabel": "Full Name",
+    "namePlaceholder": "e.g. John Doe",
+    "emailPlaceholder": "example@mail.com",
+    "passwordPlaceholder": "••••••",
+    "googleBtn": "Continue with Google",
+    "or": "OR",
+    "loginBtn": "Log In",
+    "signupBtn": "Sign Up",
+    "loading": "Loading...",
+    "forgotLink": "Forgot password?",
+    "successSent": "Link sent! Check your emails."
+  },
+
+  "Header": {
+    "home": "Home",
+    "tasks": "My Tasks",
+    "login": "Login",
+    "logout": "Log out",
+    "connectedAs": "Signed in as"
+  },
+  "Todos": {
+    "title": "Your Tasks",
+    "welcome": "Organize your day, {name}.",
+    "empty": "Everything is quiet here... 🍃",
+    "placeholderTitle": "New task...",
+    "placeholderDesc": "Add a description (optional)",
+    "addImage": "Add image",
+    "addBtn": "Add",
+    "detailsTitle": "Task Details",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "confirmDelete": "Are you sure you want to delete?"
+  }
+}
+  }
