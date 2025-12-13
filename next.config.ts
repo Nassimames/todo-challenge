@@ -1,18 +1,18 @@
 import createNextIntlPlugin from 'next-intl/plugin';
-
+import type { NextConfig } from 'next';
 const withNextIntl = createNextIntlPlugin(); // Cela cherche i18n/request.ts par défaut
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-    // On autorise les images de partout pour ton Storage Supabase
+const nextConfig: NextConfig = { 
     images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: '**',
-            },
-        ],
+      remotePatterns: [
+        {
+          protocol: 'https',
+          // Utilise un wildcard pour accepter ton projet Supabase
+          hostname: '**.supabase.co', 
+        },
+      ],
     },
-};
-
-export default withNextIntl(nextConfig);
+  };
+  
+  export default withNextIntl(nextConfig);
