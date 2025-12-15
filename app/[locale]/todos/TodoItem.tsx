@@ -5,7 +5,7 @@ import { updateTodo, deleteTodo, updateTodoDetails } from './actions';
 import { Tables } from '@/app/types/supabase';
 import { X, Calendar, AlignLeft, Trash2 } from 'lucide-react';
 
-import { useTranslations } from 'next-intl'; // <--- IMPORT
+import { useTranslations } from 'next-intl'; 
 
 export default function TodoItem({ todo }: { todo: Tables<'todos'> }) {
   const [isOpen, setIsOpen] = useState(false);

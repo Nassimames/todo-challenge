@@ -10,7 +10,6 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   return {
-    // ⚠️ C'EST CETTE LIGNE QUI MANQUAIT ET QUI CRÉE L'ERREUR :
     locale, 
     
     // Chargement des messages
